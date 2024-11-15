@@ -1,0 +1,148 @@
+/* ... (previous CSS remains the same until path colors) ... */
+
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #ecf0f1;
+    --accent-color: #3498db;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --wall-color: #34495e;
+    /* Updated path colors with transparency */
+    --path-astar: rgba(52, 152, 219, 0.5);     /* Blue */
+    --path-bfs: rgba(155, 89, 182, 0.5);       /* Purple */
+    --path-dfs: rgba(230, 126, 34, 0.5);       /* Orange */
+    --path-dijkstra: rgba(127, 140, 141, 0.5); /* Grey */
+    /* Highlight colors for path intersections */
+    --path-highlight: rgba(255, 255, 255, 0.3);
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Path Styling */
+.path-astar {
+    background-color: var(--path-astar);
+    border-color: rgba(52, 152, 219, 0.8);
+    animation: pathPulse 2s infinite;
+    z-index: 1;
+}
+
+.path-bfs {
+    background-color: var(--path-bfs);
+    border-color: rgba(155, 89, 182, 0.8);
+    animation: pathPulse 2s infinite 0.5s;
+    z-index: 2;
+}
+
+.path-dfs {
+    background-color: var(--path-dfs);
+    border-color: rgba(230, 126, 34, 0.8);
+    animation: pathPulse 2s infinite 1s;
+    z-index: 3;
+}
+
+.path-dijkstra {
+    background-color: var(--path-dijkstra);
+    border-color: rgba(127, 140, 141, 0.8);
+    animation: pathPulse 2s infinite 1.5s;
+    z-index: 4;
+}
+
+/* Overlapping paths handling */
+.cell[class*="path-"]:not(.start):not(.end) {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Add a subtle highlight effect when paths overlap */
+.cell[class*="path-"]:not(.start):not(.end)[class*=" path-"] {
+    background-blend-mode: overlay;
+}
+
+/* Animation for paths */
+@keyframes pathPulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+}
+
+/* Update legend colors to match transparent paths */
+.legend-color.path-astar {
+    background-color: var(--path-astar);
+    border: 2px solid rgba(52, 152, 219, 0.8);
+}
+
+.legend-color.path-bfs {
+    background-color: var(--path-bfs);
+    border: 2px solid rgba(155, 89, 182, 0.8);
+}
+
+.legend-color.path-dfs {
+    background-color: var(--path-dfs);
+    border: 2px solid rgba(230, 126, 34, 0.8);
+}
+
+.legend-color.path-dijkstra {
+    background-color: var(--path-dijkstra);
+    border: 2px solid rgba(127, 140, 141, 0.8);
+}
+
+/* Enhanced cell styling */
+.cell {
+    width: 35px;
+    height: 35px;
+    border: 1px solid #ddd;
+    display: inline-block;
+    margin: 1px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-radius: 4px;
+    position: relative;
+}
+
+/* Keep start and end points solid */
+.cell.start {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    z-index: 10;
+}
+
+.cell.end {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    z-index: 10;
+}
+
+/* Keep walls solid */
+.cell.wall {
+    background-color: var(--wall-color);
+    border-color: var(--wall-color);
+    z-index: 5;
+}
+
+/* Path intersection indicator */
+.path-intersection-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    display: none;
+}
+
+/* Show indicator when multiple paths overlap */
+.cell[class*="path-"][class*=" path-"] .path-intersection-indicator {
+    display: block;
+}

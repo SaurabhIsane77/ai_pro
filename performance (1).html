@@ -1,0 +1,66 @@
+<!-- templates/performance.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Performance Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="performance-section">
+        <h1>Pathfinding Algorithm Performance Analysis</h1>
+        
+        <div class="performance-results">
+            <div class="plots-container">
+                <div class="plot">
+                    <h3>Time Complexity</h3>
+                    <img src="data:image/png;base64,{{ plots.time }}" alt="Time Complexity Plot">
+                </div>
+                <div class="plot">
+                    <h3>Memory Usage</h3>
+                    <img src="data:image/png;base64,{{ plots.memory }}" alt="Memory Usage Plot">
+                </div>
+                <div class="plot">
+                    <h3>CPU Usage</h3>
+                    <img src="data:image/png;base64,{{ plots.cpu }}" alt="CPU Usage Plot">
+                </div>
+            </div>
+
+            <div class="numeric-results">
+                <h3>Numeric Results</h3>
+                {% for metric, algorithms in results.items() %}
+                    <div class="metric-section">
+                        <h4>{{ metric|title }}</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Algorithm</th>
+                                    {% for size in grid_sizes %}
+                                        <th>{{ size }}x{{ size }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alg, values in algorithms.items() %}
+                                    <tr>
+                                        <td>{{ alg|upper }}</td>
+                                        {% for value in values %}
+                                            <td>{{ "%.4f"|format(value) }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="/" class="button">Back to Pathfinder</a>
+            <button onclick="window.location.reload()" class="button">Run New Analysis</button>
+        </div>
+    </div>
+</body>
+</html>

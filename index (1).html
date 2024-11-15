@@ -1,0 +1,198 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Evacuation Pathfinder</title>
+    <style>
+        .grid-container {
+            display: inline-block;
+            margin: 20px;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            margin: 1px;
+            cursor: pointer;
+        }
+        .wall { background-color: #333; }
+        .start { background-color: #4CAF50; }
+        .end { background-color: #f44336; }
+        .path-astar { background-color: #2196F3; }
+        .path-bfs { background-color: #9C27B0; }
+        .path-dfs { background-color: #FF9800; }
+        .path-dijkstra { background-color: #607D8B; }
+        .legend {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .legend-item {
+            margin: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        #controls {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Emergency Evacuation Pathfinder</h1>
+    
+    <div id="controls">
+        <button onclick="setMode('wall')">Add/Remove Walls</button>
+        <button onclick="setMode('start')">Set Start</button>
+        <button onclick="setMode('end')">Set End</button>
+        <button onclick="clearGrid()">Clear Grid</button>
+        <button onclick="findPaths()">Find Paths</button>
+    </div>
+
+    <div class="grid-container" id="grid"></div>
+
+    <div class="legend">
+        <h3>Legend:</h3>
+        <div class="legend-item">
+            <div class="legend-color start"></div>
+            <span>Start Point</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color end"></div>
+            <span>End Point</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color wall"></div>
+            <span>Wall</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color path-astar"></div>
+            <span>A* Path</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color path-bfs"></div>
+            <span>BFS Path</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color path-dfs"></div>
+            <span>DFS Path</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color path-dijkstra"></div>
+            <span>Dijkstra Path</span>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 20;
+        let currentMode = 'wall';
+        let grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+        let startPoint = null;
+        let endPoint = null;
+
+        function initializeGrid() {
+            const gridContainer = document.getElementById('grid');
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleCellClick);
+                    gridContainer.appendChild(cell);
+                }
+                gridContainer.appendChild(document.createElement('br'));
+            }
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+        }
+
+        function handleCellClick(event) {
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+
+            clearPaths();
+
+            if (currentMode === 'wall') {
+                grid[row][col] = grid[row][col] === 1 ? 0 : 1;
+                event.target.classList.toggle('wall');
+            } else if (currentMode === 'start') {
+                if (startPoint) {
+                    const oldStart = document.querySelector(`[data-row="${startPoint[0]}"][data-col="${startPoint[1]}"]`);
+                    oldStart.classList.remove('start');
+                }
+                startPoint = [row, col];
+                event.target.classList.add('start');
+            } else if (currentMode === 'end') {
+                if (endPoint) {
+                    const oldEnd = document.querySelector(`[data-row="${endPoint[0]}"][data-col="${endPoint[1]}"]`);
+                    oldEnd.classList.remove('end');
+                }
+                endPoint = [row, col];
+                event.target.classList.add('end');
+            }
+        }
+
+        function clearGrid() {
+            grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+            startPoint = null;
+            endPoint = null;
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.className = 'cell';
+            });
+        }
+
+        function clearPaths() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('path-astar', 'path-bfs', 'path-dfs', 'path-dijkstra');
+            });
+        }
+
+        async function findPaths() {
+            if (!startPoint || !endPoint) {
+                alert('Please set both start and end points');
+                return;
+            }
+
+            const response = await fetch('/find_paths', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    grid: grid,
+                    start: startPoint,
+                    end: endPoint
+                })
+            });
+
+            const results = await response.json();
+            
+            clearPaths();
+            
+            // Display paths with different colors
+            for (const [algorithm, data] of Object.entries(results)) {
+                data.path.forEach(([row, col]) => {
+                    if (!arrayEquals([row, col], startPoint) && !arrayEquals([row, col], endPoint)) {
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        cell.classList.add(`path-${algorithm}`);
+                    }
+                });
+            }
+        }
+
+        function arrayEquals(a, b) {
+            return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((val, index) => val === b[index]);
+        }
+
+        initializeGrid();
+    </script>
+</body>
+</html>
